@@ -1,0 +1,109 @@
+import datetime
+
+class LMS:
+    ''' This class is used to keep record of books library 
+        It has total 4 modules: 1) Display Books  2) Issue Books  3) Return Books  4) Add Books '''
+
+    def __init__(self, list_of_books, library_name):
+        self.list_of_books = "List of Books.txt"
+        self.library_name = library_name
+        self.books_dict = {}
+        Id = 101
+
+        with open(self.list_of_books) as f:
+            content = f.readlines()
+        for line in content:
+            self.books_dict.update({str(Id) : {"Books Title":line.replace("\n",""), 
+                                               "Lender Name": "", "Issue Date": "", "Status": "Available"}})
+            Id = Id + 1
+
+    def display_books(self):
+        print("----------List of Books----------")
+        print("ID", " :", "Title")
+        print("---------------------------------")
+
+        for key,value in self.books_dict.items():
+            print(f"{key} : {value.get("Books Title")} - [{value.get("Status")}]")
+
+    def issue_books(self):
+        book_id = input("Enter Books ID: ")
+        current_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        if book_id in self.books_dict.keys():
+            if not self.books_dict[book_id]["Status"] == "Available":
+                print(f"This Books is already issued to {self.books_dict[book_id]["Lender Name"]} \
+                      on {self.books_dict[book_id]["Issue Date"]}")
+                return self.issue_books()
+            elif self.books_dict[book_id]["Status"] == "Available":
+                your_name = input("Enter your name: ")
+                self.books_dict[book_id]["Lender Name"] = your_name
+                self.books_dict[book_id]["Issue Date"] = current_date
+                self.books_dict[book_id]["Status"] = "Already Issued"
+                print("Book issued successfully!")
+        else:
+            print("Book ID not found.")
+            return self.issue_books()
+
+    def add_books(self):
+        new_book = input("Enter Book Title: ")
+        if new_book == "":
+            return self.add_books()
+        elif len(new_book) > 25:
+            print("Book Title's length is too long! Title length should be max. 20 characters.")
+            return self.add_books()
+        else:
+            with open(self.list_of_books, "a") as bk:
+                bk.write(f"\n{new_book}")
+                self.books_dict[str(max([int(key) for key in self.books_dict.keys()]) + 1)] = {
+                    "Books Title": new_book,
+                    "Lender Name": "",
+                    "Issue Date": "",
+                    "Status": "Available"
+                }
+            
+                print(f"Book - '{new_book}' has been added successfully!")
+
+
+    def return_book(self):
+        book_id = input("Enter Book ID: ")
+        if book_id in self.books_dict.keys():
+            if self.books_dict[book_id]["Status"] == "Available":
+                print("This Book is already available in Library. Please check your Book ID.")
+                return self.return_book()
+            elif not self.books_dict[book_id]["Status"] == "Available":
+                self.books_dict[book_id]["Lender Name"] = ""
+                self.books_dict[book_id]["Issue Date"] = ""
+                self.books_dict[book_id]["Status"] = "Available"
+                print("Successfully Returned !!")
+            else:
+                print("Book ID is not found !!")
+
+
+try:
+    myLMS = LMS("List of Books.txt", "Python's Library")
+    press_key_list = {"D": "Display Books", "I": "Issue Books", "A": "Add Books", "R": "Return Books", "Q": "Quit"}
+    key_press = False
+    while not (key_press == "q"):
+        print(f"\n---------- Welcome to {myLMS.library_name} Management System ---------\n")
+        for key, value in press_key_list.items():
+            print(f"Press '{key}' to {value}")
+        key_press = input("\nPress Key: ").lower()
+        if key_press == "i":
+            print("\nCurrent Selection: Issue Books\n")
+            myLMS.issue_books()
+        elif key_press == "a":
+            print("\nCurrent Selection: Add Book\n")
+            myLMS.add_books()
+        elif key_press == "d":
+            print("\nCurrent Selection: Display Books\n")
+            myLMS.display_books()
+        elif key_press == "r":
+            print("\nCurrent Selection: Return Books\n")
+            myLMS.return_book()
+        elif key_press == "q":
+            break
+        else:
+            print("Please select a valid option.")
+            continue
+except Exception as e:
+    print("Something went wrong! Please check your input.")
+                
